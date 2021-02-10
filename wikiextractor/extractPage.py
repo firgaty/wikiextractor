@@ -34,14 +34,15 @@ import bz2
 
 
 # Program version
-__version__ = '3.0.5'
+__version__ = "3.0.5"
 
 # ----------------------------------------------------------------------
 # READER
 
-tagRE = re.compile(r'(.*?)<(/?\w+)[^>]*>(?:([^<]*)(<.*?>)?)?')
-#tagRE = re.compile(r'(.*?)<(/?\w+)[^>]*>([^<]*)')
+tagRE = re.compile(r"(.*?)<(/?\w+)[^>]*>(?:([^<]*)(<.*?>)?)?")
+# tagRE = re.compile(r'(.*?)<(/?\w+)[^>]*>([^<]*)')
 #                    1     2            3
+
 
 def process_data(input_file, id, templates=False):
     """
@@ -50,14 +51,14 @@ def process_data(input_file, id, templates=False):
     """
 
     if input_file.lower().endswith(".bz2"):
-        input = bz2.open(input_file, mode='rt', encoding='utf-8')
+        input = bz2.open(input_file, mode="rt", encoding="utf-8")
     else:
         input = open(input_file)
 
     page = []
     for line in input:
         line = line
-        if '<' not in line:         # faster than doing re.search()
+        if "<" not in line:  # faster than doing re.search()
             if page:
                 page.append(line)
             continue
@@ -65,29 +66,29 @@ def process_data(input_file, id, templates=False):
         if not m:
             continue
         tag = m.group(2)
-        if tag == 'page':
+        if tag == "page":
             page = []
             page.append(line)
             inArticle = False
-        elif tag == 'id':
+        elif tag == "id":
             curid = m.group(3)
             if id == curid:
                 page.append(line)
                 inArticle = True
             elif not inArticle and not templates:
                 page = []
-        elif tag == 'title':
+        elif tag == "title":
             if templates:
-                if m.group(3).startswith('Template:'):
+                if m.group(3).startswith("Template:"):
                     page.append(line)
                 else:
                     page = []
             else:
                 page.append(line)
-        elif tag == '/page':
+        elif tag == "/page":
             if page:
                 page.append(line)
-                print(''.join(page))
+                print("".join(page))
                 if not templates:
                     break
             page = []
@@ -96,23 +97,28 @@ def process_data(input_file, id, templates=False):
 
     input.close()
 
+
 def main():
-    parser = argparse.ArgumentParser(prog=os.path.basename(sys.argv[0]),
+    parser = argparse.ArgumentParser(
+        prog=os.path.basename(sys.argv[0]),
         formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description=__doc__)
-    parser.add_argument("input",
-                        help="XML wiki dump file")
-    parser.add_argument("--id", default="1",
-                        help="article number")
-    parser.add_argument("--template", action="store_true",
-                        help="template number")
-    parser.add_argument("-v", "--version", action="version",
-                        version='%(prog)s ' + version,
-                        help="print program version")
+        description=__doc__,
+    )
+    parser.add_argument("input", help="XML wiki dump file")
+    parser.add_argument("--id", default="1", help="article number")
+    parser.add_argument("--template", action="store_true", help="template number")
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version="%(prog)s " + version,
+        help="print program version",
+    )
 
     args = parser.parse_args()
 
     process_data(args.input, args.id, args.template)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
