@@ -47,7 +47,7 @@ If the program is invoked with the --json flag, then each file will
 contain several documents formatted as json ojects, one per line, with                                         
 the following structure
 
-    {"id": "", "revid": "", "url": "", "title": "", "text": "..."}
+    {"id": "", "revid": "", "url": "", "title": "", "text": "...", "links" : [...]}
 
 The program performs template expansion by preprocesssng the whole dump and
 collecting template definitions.

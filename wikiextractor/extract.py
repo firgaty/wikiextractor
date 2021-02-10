@@ -93,7 +93,7 @@ def clean(extractor, text, expand_templates=False, html_safe=True):
     text = replaceExternalLinks(text)
 
     # replace internal links
-    text = replaceInternalLinks(text)
+    text, links = replaceInternalLinks(text)
 
     # drop MagicWords behavioral switches
     text = magicWordsRE.sub('', text)
@@ -174,7 +174,7 @@ def clean(extractor, text, expand_templates=False, html_safe=True):
     text = text.replace(',,', ',').replace(',.', '.')
     if html_safe:
         text = html.escape(text, quote=False)
-    return text
+    return text, links
 
 
 # skip level 1, it is page name level
@@ -449,6 +449,7 @@ def replaceInternalLinks(text):
     """
     # call this after removal of external links, so we need not worry about
     # triple closing ]]].
+    links = []
     cur = 0
     res = ''
     for s, e in findBalanced(text, ['[['], [']]']):
@@ -477,7 +478,9 @@ def replaceInternalLinks(text):
             label = inner[pipe + 1:].strip()
         res += text[cur:s] + makeInternalLink(title, label) + trail
         cur = end
-    return res + text[cur:]
+        links.append(title)
+        
+    return res + text[cur:], links
 
 
 def makeInternalLink(title, label):
@@ -841,11 +844,11 @@ class Extractor():
         self.magicWords['currenthour'] = time.strftime('%H')
         self.magicWords['currenttime'] = time.strftime('%H:%M:%S')
 
-        text = clean(self, text, expand_templates=expand_templates,
+        text, links = clean(self, text, expand_templates=expand_templates,
                      html_safe=html_safe)
 
         text = compact(text, mark_headers=mark_headers)
-        return text
+        return text, links
 
     def extract(self, out, html_safe=True):
         """
@@ -854,7 +857,7 @@ class Extractor():
         """
         logging.debug("%s\t%s", self.id, self.title)
         text = ''.join(self.page)
-        text = self.clean_text(text, html_safe=html_safe)
+        text, links = self.clean_text(text, html_safe=html_safe)
 
         if self.to_json:
             json_data = {
@@ -862,7 +865,8 @@ class Extractor():
                 'revid': self.revid,
                 'url': self.url,
                 'title': self.title,
-                'text': "\n".join(text)
+                'text': "\n".join(text),
+                'links': links
             }
             out_str = json.dumps(json_data)
             out.write(out_str)
