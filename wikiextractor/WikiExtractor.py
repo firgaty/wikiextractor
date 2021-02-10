@@ -59,6 +59,7 @@ import logging
 import os.path
 import re  # TODO use regex when it will be standard
 import sys
+import codecs
 from io import StringIO
 from multiprocessing import Queue, Process, cpu_count
 from timeit import default_timer
@@ -204,7 +205,7 @@ def load_templates(file, output_file=None):
     page = []
     inText = False
     if output_file:
-        output = open(output_file, "w")
+        output = codecs.open(output_file, "w", "utf-8")
     for line in file:
         # line = line.decode('utf-8')
         if "<" not in line:  # faster than doing re.search()
@@ -251,7 +252,7 @@ def load_templates(file, output_file=None):
                 output.write("   <ns>10</ns>\n")
                 output.write("   <text>")
                 for line in page:
-                    output.write(line.encode("utf-8"))
+                    output.write(line)
                 output.write("   </text>\n")
                 output.write("</page>\n")
             page = []
